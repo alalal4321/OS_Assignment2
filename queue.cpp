@@ -40,7 +40,9 @@ Node* nalloc(Item item) {
 
 
 void nfree(Node* node) {
-	return;
+    if (node != NULL) {
+        free(node);
+    }
 }
 
 
