@@ -2,3 +2,4 @@
 - 과제 시작
 - init 함수 작성
 - release 함수 작성
+- nalloc 함수 작성
