@@ -24,10 +24,12 @@ typedef struct node_t {
 } Node;
 
 typedef struct {
-    Node* head, tail;
+    Node* head;
+    Node* tail;
     // 필드 추가 가능
 } Queue;
 
 // 이후 자유롭게 추가/수정: 새로운 자료형 정의 등
+
 
 #endif
