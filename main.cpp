@@ -97,16 +97,24 @@ typedef struct {
 
 // init 함수 테스트
 int main() {
-    Queue* q = init();
-    if (q == NULL) {
+
+    Item item;
+    item.key = 42;
+    item.value = (void*)1000;  // 임시로 정수 저장
+
+    Node* node = nalloc(item);
+
+    if (node == NULL) {
         std::cout << "[실패] 큐 초기화에 실패" << std::endl;
         return 1;
     }
 
-    std::cout << "[성공] 큐가 정상적으로 생성" << std::endl;
-    std::cout << "현재 head: " << q->head << ", tail: " << q->tail << std::endl;
+    std::cout << "[성공] nalloc()이 노드를 생성했습니다." << std::endl;
+    std::cout << "key: " << node->item.key << std::endl;
+    std::cout << "value: " << (int)(intptr_t)node->item.value << std::endl;
+    std::cout << "next: " << node->next << std::endl;
 
-    release(q);
+    free(node);
 
     return 0;
 }
