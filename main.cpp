@@ -94,27 +94,35 @@ typedef struct {
 //	return 0;
 //}
 
-
-// init 함수 테스트
-int main() {
-
-    Item item;
-    item.key = 42;
-    item.value = (void*)1000;  // 임시로 정수 저장
-
-    Node* node = nalloc(item);
-
-    if (node == NULL) {
-        std::cout << "[실패] 큐 초기화에 실패" << std::endl;
-        return 1;
+//enqueue() 테스트
+void printQueue(Queue* queue) {
+    Node* current = queue->head;
+    std::cout << "[큐 상태: head → tail]" << std::endl;
+    while (current != NULL) {
+        std::cout << "(key: " << current->item.key
+            << ", value: " << (int)(intptr_t)current->item.value << ") → ";
+        current = current->next;
     }
+    std::cout << "NULL" << std::endl;
+}
 
-    std::cout << "[성공] nalloc()이 노드를 생성했습니다." << std::endl;
-    std::cout << "key: " << node->item.key << std::endl;
-    std::cout << "value: " << (int)(intptr_t)node->item.value << std::endl;
-    std::cout << "next: " << node->next << std::endl;
+int main() {
+    Queue* q = init();
 
-    free(node);
+    Item item1 = { 10, (void*)100 };
+    Item item2 = { 30, (void*)300 };
+    Item item3 = { 20, (void*)200 };
+    Item item4 = { 40, (void*)400 };
+    Item item5 = { 15, (void*)150 };
 
+    enqueue(q, item1);
+    enqueue(q, item2);
+    enqueue(q, item3);
+    enqueue(q, item4);
+    enqueue(q, item5);
+
+    printQueue(q);  // 우선순위 (key 큰 순): 40 → 30 → 20 → 15 → 10
+
+    release(q);
     return 0;
 }
