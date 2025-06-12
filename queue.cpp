@@ -16,7 +16,16 @@ Queue* init(void) {
 
 
 void release(Queue* queue) {
-	return;
+	if (queue == NULL) return;
+
+	Node* current = queue->head;
+	while (current != NULL) {
+		Node* next = current->next;
+		free(current);
+		current = next;
+	}
+
+	free(queue);
 }
 
 

@@ -106,5 +106,7 @@ int main() {
     std::cout << "[성공] 큐가 정상적으로 생성" << std::endl;
     std::cout << "현재 head: " << q->head << ", tail: " << q->tail << std::endl;
 
+    release(q);
+
     return 0;
 }
