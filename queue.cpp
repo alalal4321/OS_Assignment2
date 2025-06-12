@@ -91,9 +91,28 @@ Reply enqueue(Queue* queue, Item item) {
 
 
 Reply dequeue(Queue* queue) {
-	Reply reply = { false, NULL };
-	return reply;
+    Reply reply = { false, {0, NULL} };
+
+    if (queue == NULL || queue->head == NULL) {
+        return reply;  // 빈 큐
+    }
+
+    Node* target = queue->head;
+    reply.item = target->item;
+    reply.success = true;
+
+    // head 이동
+    queue->head = target->next;
+
+    // tail도 비워야 하는 경우
+    if (queue->head == NULL) {
+        queue->tail = NULL;
+    }
+
+    nfree(target);
+    return reply;
 }
+
 
 Queue* range(Queue* queue, Key start, Key end) {
 	return NULL;

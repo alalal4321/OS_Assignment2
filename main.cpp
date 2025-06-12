@@ -94,13 +94,13 @@ typedef struct {
 //	return 0;
 //}
 
-//enqueue() 테스트
+//enqueue() 테스트 후 dequeue 테스트
 void printQueue(Queue* queue) {
     Node* current = queue->head;
     std::cout << "[큐 상태: head → tail]" << std::endl;
     while (current != NULL) {
         std::cout << "(key: " << current->item.key
-            << ", value: " << (int)(intptr_t)current->item.value << ") → ";
+                  << ", value: " << (int)(intptr_t)current->item.value << ") → ";
         current = current->next;
     }
     std::cout << "NULL" << std::endl;
@@ -109,20 +109,29 @@ void printQueue(Queue* queue) {
 int main() {
     Queue* q = init();
 
-    Item item1 = { 10, (void*)100 };
-    Item item2 = { 30, (void*)300 };
-    Item item3 = { 20, (void*)200 };
-    Item item4 = { 40, (void*)400 };
-    Item item5 = { 15, (void*)150 };
+    // 1. enqueue 테스트
+    enqueue(q, { 10, (void*)100 });
+    enqueue(q, { 30, (void*)300 });
+    enqueue(q, { 20, (void*)200 });
+    enqueue(q, { 40, (void*)400 });
+    enqueue(q, { 15, (void*)150 });
 
-    enqueue(q, item1);
-    enqueue(q, item2);
-    enqueue(q, item3);
-    enqueue(q, item4);
-    enqueue(q, item5);
+    cout << "\n[enqueue 후 큐 상태]" << endl;
+    printQueue(q);  // 기대: 40 → 30 → 20 → 15 → 10
 
-    printQueue(q);  // 우선순위 (key 큰 순): 40 → 30 → 20 → 15 → 10
+    // 2. dequeue 테스트
+    cout << "\n[dequeue 순서 확인]" << endl;
+    Reply r;
+    while (true) {
+        r = dequeue(q);
+        if (!r.success) break;
 
+        cout << "dequeued → key: " << r.item.key
+             << ", value: " << (int)(intptr_t)r.item.value << endl;
+    }
+
+    cout << "\n[모든 노드를 dequeue 후 release]" << endl;
     release(q);
+
     return 0;
 }
