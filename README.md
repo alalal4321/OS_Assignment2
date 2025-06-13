@@ -5,3 +5,4 @@
 - nalloc 함수 작성
 - enqueue 함수 작성 + nfree 함수 작성
 - dequeue 함수 작성
+- (std::mutex) 적용
