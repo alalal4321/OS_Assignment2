@@ -1,13 +1,13 @@
-#include <iostream>
+ï»¿#include <iostream>
 #include <thread>
 #include <atomic>
 #include "queue.h"
 
 using namespace std;
 
-// ÃÊ°£´Ü ±¸µ¿ Å×½ºÆ®
-// ÁÖÀÇ: ¾Æ·¡ Á¤ÀÇ(Operation, Request)´Â ¿¹½ÃÀÏ »Ó
-// Å¥ÀÇ ItemÀº void*ÀÌ¹Ç·Î ¾ó¸¶µçÁö ´Ş¶óÁú ¼ö ÀÖÀ½
+// ì´ˆê°„ë‹¨ êµ¬ë™ í…ŒìŠ¤íŠ¸
+// ì£¼ì˜: ì•„ë˜ ì •ì˜(Operation, Request)ëŠ” ì˜ˆì‹œì¼ ë¿
+// íì˜ Itemì€ void*ì´ë¯€ë¡œ ì–¼ë§ˆë“ ì§€ ë‹¬ë¼ì§ˆ ìˆ˜ ìˆìŒ
 
 #define REQUEST_PER_CLINET	10000
 
@@ -26,112 +26,71 @@ typedef struct {
 	Item item;
 } Request;
 
-//void client_func(Queue* queue, Request requests[], int n_request) {
-//	Reply reply = { false, 0 };
-//
-//	// start_time = .....
-//
-//	for (int i = 0; i < n_request; i++) {
-//		if (requests[i].op == GET) {
-//			reply = dequeue(queue);
-//		}
-//		else { // SET
-//			reply = enqueue(queue, requests[i].item);
-//		}
-//
-//		if (reply.success) {
-//			// ´Ü¼øÈ÷ ¸®ÅÏ¹ŞÀº Å° °ªÀ» ´õÇÔ(¾Æ¹« ÀÇ¹Ì ¾øÀ½)
-//			sum_key += reply.item.key;
-//			sum_value += (int)reply.item.value; // void*¿¡¼­ ´Ù½Ã int·Î º¯È¯
-//
-//			// ¸®ÅÏ¹ŞÀº key, value °ª °ËÁõ
-//			// ...»ı·«...
-//		}
-//		else {
-//			// noop
-//		}
-//	}
-//
-//	// ÁøÂ¥·Î ÇÊ¿äÇÑ °Ç Áö¿¬½Ã°£À» ÃøÁ¤ÇÏ´Â ÄÚµå
-//	//
-//	// elapsed_time = finish_time - start_time;
-//	// finish_time = ....
-//	// average_response_time = elapsed_time / REQUEST_PER_CLIENT;
-//	// printf(...average_response_time of client1 = .....);
-//	// response_time_tot += finish_time - start_time;
-//}
-//
-//int main(void) {
-//	srand((unsigned int)time(NULL));
-//
-//	// ¿öÅ©·Îµå »ı¼º(GETRANGE´Â ÆĞ½º)
-//	Request requests[REQUEST_PER_CLINET];
-//	for (int i = 0; i < REQUEST_PER_CLINET / 2; i++) {
-//		requests[i].op = SET;
-//		requests[i].item.key = i;
-//		requests[i].item.value = (void*)(rand() % 1000000);
-//	}
-//	for (int i = REQUEST_PER_CLINET / 2; i < REQUEST_PER_CLINET; i++) {
-//		requests[i].op = GET;
-//	}
-//
-//	Queue* queue = init();
-//	//if (queue == NULL) return 0;
-//
-//	// ÀÏ´Ü ÇÑ °³ »ÓÀÎµ¥, ±×·¡µµ multi client¶ó°í °¡Á¤ÇÏ±â
-//	thread client = thread(client_func, queue, requests, REQUEST_PER_CLINET);
-//	client.join();
-//
-//	release(queue);
-//
-//	// ÀÇ¹Ì ¾ø´Â ÀÛ¾÷
-//	cout << "sum of returned keys = " << sum_key << endl;
-//	cout << "sum of returned values = " << sum_value << endl;
-//
-//	// ÁøÂ¥·Î ÇÊ¿äÇÑ ÄÚµå
-//	// total_average_response_time = total_response_time / n_cleint;
-//	// printf("total average response time = ....
-//	return 0;
-//}
+void client_func(Queue* queue, Request requests[], int n_request) {
+	Reply reply = { false, 0 };
 
-//enqueue() Å×½ºÆ® ÈÄ dequeue Å×½ºÆ®
-void printQueue(Queue* queue) {
-    Node* current = queue->head;
-    std::cout << "[Å¥ »óÅÂ: head ¡æ tail]" << std::endl;
-    while (current != NULL) {
-        std::cout << "(key: " << current->item.key
-                  << ", value: " << (int)(intptr_t)current->item.value << ") ¡æ ";
-        current = current->next;
-    }
-    std::cout << "NULL" << std::endl;
+	// start_time = .....
+
+	for (int i = 0; i < n_request; i++) {
+		if (requests[i].op == GET) {
+			reply = dequeue(queue);
+		}
+		else { // SET
+			reply = enqueue(queue, requests[i].item);
+		}
+
+		if (reply.success) {
+			// ë‹¨ìˆœíˆ ë¦¬í„´ë°›ì€ í‚¤ ê°’ì„ ë”í•¨(ì•„ë¬´ ì˜ë¯¸ ì—†ìŒ)
+			sum_key += reply.item.key;
+			sum_value += (int)reply.item.value; // void*ì—ì„œ ë‹¤ì‹œ intë¡œ ë³€í™˜
+
+			// ë¦¬í„´ë°›ì€ key, value ê°’ ê²€ì¦
+			// ...ìƒëµ...
+		}
+		else {
+			// noop
+		}
+	}
+
+	// ì§„ì§œë¡œ í•„ìš”í•œ ê±´ ì§€ì—°ì‹œê°„ì„ ì¸¡ì •í•˜ëŠ” ì½”ë“œ
+	//
+	// elapsed_time = finish_time - start_time;
+	// finish_time = ....
+	// average_response_time = elapsed_time / REQUEST_PER_CLIENT;
+	// printf(...average_response_time of client1 = .....);
+	// response_time_tot += finish_time - start_time;
 }
 
-int main() {
-    Queue* q = init();
+int main(void) {
+	srand((unsigned int)time(NULL));
 
-    // 1. enqueue Å×½ºÆ®
-    enqueue(q, { 10, (void*)100 });
-    enqueue(q, { 30, (void*)300 });
-    enqueue(q, { 20, (void*)200 });
-    enqueue(q, { 40, (void*)400 });
-    enqueue(q, { 15, (void*)150 });
+	// ì›Œí¬ë¡œë“œ ìƒì„±(GETRANGEëŠ” íŒ¨ìŠ¤)
+	Request requests[REQUEST_PER_CLINET];
+	for (int i = 0; i < REQUEST_PER_CLINET / 2; i++) {
+		requests[i].op = SET;
+		requests[i].item.key = i;
+		requests[i].item.value = (void*)(rand() % 1000000);
+	}
+	for (int i = REQUEST_PER_CLINET / 2; i < REQUEST_PER_CLINET; i++) {
+		requests[i].op = GET;
+	}
 
-    cout << "\n[enqueue ÈÄ Å¥ »óÅÂ]" << endl;
-    printQueue(q);  // ±â´ë: 40 ¡æ 30 ¡æ 20 ¡æ 15 ¡æ 10
+	Queue* queue = init();
+	//if (queue == NULL) return 0;
 
-    // 2. dequeue Å×½ºÆ®
-    cout << "\n[dequeue ¼ø¼­ È®ÀÎ]" << endl;
-    Reply r;
-    while (true) {
-        r = dequeue(q);
-        if (!r.success) break;
+	// ì¼ë‹¨ í•œ ê°œ ë¿ì¸ë°, ê·¸ë˜ë„ multi clientë¼ê³  ê°€ì •í•˜ê¸°
+	thread client = thread(client_func, queue, requests, REQUEST_PER_CLINET);
+	client.join();
 
-        cout << "dequeued ¡æ key: " << r.item.key
-             << ", value: " << (int)(intptr_t)r.item.value << endl;
-    }
+	release(queue);
 
-    cout << "\n[¸ğµç ³ëµå¸¦ dequeue ÈÄ release]" << endl;
-    release(q);
+	// ì˜ë¯¸ ì—†ëŠ” ì‘ì—…
+	cout << "sum of returned keys = " << sum_key << endl;
+	cout << "sum of returned values = " << sum_value << endl;
 
-    return 0;
+	// ì§„ì§œë¡œ í•„ìš”í•œ ì½”ë“œ
+	// total_average_response_time = total_response_time / n_cleint;
+	// printf("total average response time = ....
+	return 0;
 }
+  

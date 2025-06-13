@@ -1,120 +1,126 @@
-#include <iostream>
+Ôªø#include <iostream>
 #include "queue.h"
 #include <cstdlib>  // malloc, free
 
+using namespace std;
 
-Queue* init(void) {
-	Queue* queue = (Queue*)malloc(sizeof(Queue));
-	if (queue == NULL) {
-		return NULL;
-	}
-	queue->head = NULL;
-	queue->tail = NULL;
-	return queue;
+
+Queue* init()
+{
+    auto* q = new (std::nothrow) Queue;   
+    if (!q) return nullptr;
+
+    q->head = q->tail = nullptr;
+    return q;
+}
+
+
+void release(Queue* q)
+{
+    if (!q) return;
+    Node* cur = q->head;
+    while (cur) { Node* nxt = cur->next; nfree(cur); cur = nxt; }
+    delete q;                              
+}
+
+
+Node* nalloc(Item it)
+{
+    Node* n = static_cast<Node*>(std::malloc(sizeof(Node)));
+    if (!n) {
+        std::cerr << "[] nalloc malloc Ïã§Ìå®\n";
+        return nullptr;
+    }
+    n->item = it;
+    n->next = nullptr;
+    return n;
 }
 
 
 
-void release(Queue* queue) {
-	if (queue == NULL) return;
-
-	Node* current = queue->head;
-	while (current != NULL) {
-		Node* next = current->next;
-		free(current);
-		current = next;
-	}
-
-	free(queue);
+void nfree(Node* n)
+{
+    if (n) std::free(n);
 }
 
 
-Node* nalloc(Item item) {
-	Node* node = (Node*)malloc(sizeof(Node));
-	if (node == NULL) return NULL;  
-
-	node->item = item;
-	node->next = NULL;
-	return node;
+Node* nclone(Node* n)            
+{
+    if (!n) return nullptr;
+    Node* cp = nalloc(n->item);
+    return cp;
 }
 
 
-void nfree(Node* node) {
-    if (node != NULL) {
-        free(node);
+
+Reply enqueue(Queue* q, Item it)
+{
+    Reply rep{ false, it };
+    if (!q) return rep;
+
+    std::lock_guard<std::mutex> g(q->lock);   // Îã®Ïùº ÎùΩ
+
+    Node* n = nalloc(it);
+    if (!n) return rep;
+
+    // Îπà ÌÅê
+    if (!q->head) {
+        q->head = q->tail = n;
+        rep.success = true;
+        return rep;
     }
+
+    // head Ïïû(ÎÇ¥Î¶ºÏ∞®ÏàúÏù¥ÎØÄÎ°ú key Í∞Ä Îçî ÌÅ¥ Îïå) 
+    if (it.key > q->head->item.key) {
+        n->next = q->head;
+        q->head = n;
+        rep.success = true;
+        return rep;
+    }
+
+    // Ï§ëÍ∞Ñ / ÎÅù 
+    Node* cur = q->head;
+    int   cnt = 0;
+    const int MAX_LOOP = 100000;      // Î¨¥Ìïú Î£®ÌîÑ ÏïàÏ†ÑÏû•Ïπò
+
+    while (cur->next && cur->next->item.key > it.key) {
+        if (++cnt > MAX_LOOP) {
+            std::cerr << "[ERR] enqueue loop overflow  key=" << it.key << '\n';
+            break;                        
+        }
+        cur = cur->next;
+    }
+
+    // ÏÇΩÏûÖ 
+    n->next = cur->next;      // ÏÇ¨Î≥∏
+    cur->next = n;              // Ïó∞Í≤∞
+    if (!n->next) q->tail = n;  // tail Í∞±Ïã†
+
+    rep.success = true;
+    return rep;
 }
 
 
-Node* nclone(Node* node) {
-	return NULL;
-}
 
 
-Reply enqueue(Queue* queue, Item item) {
-    Reply reply = { false, item };
+Reply dequeue(Queue* q)
+{
+    Reply rep{ false, {} };
+    if (!q) return rep;
 
-    std::lock_guard<std::mutex> g(q->lock);   // ¥‹¿œ ∂Ù
+    std::lock_guard<std::mutex> g(q->lock);
 
-    Node* new_node = nalloc(item);
-    if (new_node == NULL) return reply;
+    if (!q->head) return rep;        // ÎπÑÏñ¥ÏûàÏùÑÎïå
 
-    // Case 1: ∫Û ≈•¿œ ∞ÊøÏ
-    if (queue->head == NULL) {
-        queue->head = queue->tail = new_node;
-        reply.success = true;
-        return reply;
-    }
+    Node* tgt = q->head;
+    rep.item = tgt->item;
+    rep.success = true;
 
-    // Case 2: ª¿‘«“ item¿« key∞° head∫∏¥Ÿ ≈¨ ∞ÊøÏ (æ’ø° ª¿‘)
-    if (item.key > queue->head->item.key) {
-        new_node->next = queue->head;
-        queue->head = new_node;
-        reply.success = true;
-        return reply;
-    }
+    q->head = tgt->next;
+    if (!q->head) q->tail = nullptr;
 
-    // Case 3: ¡ﬂ∞£ ∂«¥¬ ≥°ø° ª¿‘
-    Node* current = queue->head;
-    while (current->next != NULL && current->next->item.key >= item.key) {
-        current = current->next;
-    }
-
-    new_node->next = current->next;
-    current->next = new_node;
-
-    if (new_node->next == NULL) {
-        queue->tail = new_node;
-    }
-
-    reply.success = true;
-    return reply;
-}
-
-
-Reply dequeue(Queue* queue) {
-    Reply reply = { false, {0, NULL} };
-
-    std::lock_guard<std::mutex> g(q->lock);   // ¥‹¿œ ∂Ù
-
-    if (queue == NULL || queue->head == NULL) {
-        return reply;  // ∫Û ≈•
-    }
-
-    Node* target = queue->head;
-    reply.item = target->item;
-    reply.success = true;
-
-    // head ¿Ãµø
-    queue->head = target->next;
-
-    // tailµµ ∫Òøˆæﬂ «œ¥¬ ∞ÊøÏ
-    if (queue->head == NULL) {
-        queue->tail = NULL;
-    }
-
-    nfree(target);
-    return reply;
+    nfree(tgt);
+    return rep;
 }
 
 
