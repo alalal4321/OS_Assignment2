@@ -27,6 +27,7 @@ typedef struct {
     Node* head;
     Node* tail;
     // 필드 추가 가능
+    std::mutex lock;
 } Queue;
 
 // 이후 자유롭게 추가/수정: 새로운 자료형 정의 등

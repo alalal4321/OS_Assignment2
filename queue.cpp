@@ -54,6 +54,8 @@ Node* nclone(Node* node) {
 Reply enqueue(Queue* queue, Item item) {
     Reply reply = { false, item };
 
+    std::lock_guard<std::mutex> g(q->lock);   // 단일 락
+
     Node* new_node = nalloc(item);
     if (new_node == NULL) return reply;
 
@@ -92,6 +94,8 @@ Reply enqueue(Queue* queue, Item item) {
 
 Reply dequeue(Queue* queue) {
     Reply reply = { false, {0, NULL} };
+
+    std::lock_guard<std::mutex> g(q->lock);   // 단일 락
 
     if (queue == NULL || queue->head == NULL) {
         return reply;  // 빈 큐
